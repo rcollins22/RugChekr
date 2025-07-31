@@ -1,0 +1,39 @@
+{
+  "name": "contract-scanner",
+  "version": "1.0.0",
+  "description": "Modern React app to scan Solana and Ethereum contracts for scam detection with AI explanations",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "solana",
+    "ethereum",
+    "contract",
+    "scam",
+    "detection",
+    "react",
+    "ai"
+  ],
+  "author": "",
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.4.21",
+    "lucide-react": "^0.534.0",
+    "postcss": "^8.5.6",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.7"
+  },
+  "license": "MIT"
+}
