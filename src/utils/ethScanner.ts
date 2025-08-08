@@ -270,8 +270,8 @@ export class EthereumContractScanner {
         const riskFactors = this.scanSourceCode(source);
         const riskScore = this.generateRiskScore(riskFactors);
         
-        // Calculate audit score (inverse of risk score with some adjustments)
-        auditScore = Math.max(0, 100 - riskScore - this.randomNumber(0, 20));
+        // Calculate audit score (deterministic inverse of risk score)
+        auditScore = Math.max(0, 100 - riskScore);
         
         // If honeypot data wasn't fetched, use fallback based on risk score
         if (!honeypotData) {
@@ -287,9 +287,9 @@ export class EthereumContractScanner {
             ? `Creator controls ${creatorHoldingPercent}% of supply` 
             : 'Creator controls less than 5%';
         
-        // Mock top 10 holder analysis (requires advanced blockchain analytics)
+        // Top 10 holder analysis requires specialized blockchain analytics
         // TODO: Integrate with Moralis, Alchemy, or similar service for accurate holder distribution
-        top10HolderPercentage = `${this.randomNumber(60, 95)}%`;
+        top10HolderPercentage = 'Data not available';
         
         // Set liquidity status based on amount and lock status
         liquidityStatus = liquidityUSD < 1000 
@@ -308,11 +308,11 @@ export class EthereumContractScanner {
                     liquidityUSD = parseFloat(dexRes.data.pairs[0].liquidity.usd);
                 }
             } else {
-                liquidityProvider = contractCreator || '0x' + Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+                liquidityProvider = contractCreator || 'Unknown';
             }
         } catch (dexError) {
             console.warn('Could not fetch DEX data:', dexError);
-            liquidityProvider = contractCreator || '0x' + Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+            liquidityProvider = contractCreator || 'Unknown';
         }
         
         // Calculate circulating and burned supply
@@ -422,14 +422,6 @@ export class EthereumContractScanner {
         if (score >= 80) return { label: 'HIGH RISK', color: 'red' };
         if (score >= 40) return { label: 'MEDIUM RISK', color: 'yellow' };
         return { label: 'LOW RISK', color: 'green' };
-    }
-
-    static randomChoice(options: string[]): string {
-        return options[Math.floor(Math.random() * options.length)];
-    }
-
-    static randomNumber(min: number, max: number): number {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     static formatNumber(num: number): string {
