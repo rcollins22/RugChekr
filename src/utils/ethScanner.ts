@@ -37,7 +37,7 @@ export class EthereumContractScanner {
             throw new Error('Etherscan API key not configured. Please add your API key to the config file.');
         }
 
-        const baseUrl = `https://api.etherscan.io/api?apikey=${apiKey}`;
+        const baseUrl = `https://api.etherscan.io/v2/api?chainis=1apikey=${apiKey}`;
 
         let liquidityUSD = 0;
         let source = '';
