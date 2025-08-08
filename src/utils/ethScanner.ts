@@ -66,6 +66,7 @@ export class EthereumContractScanner {
             // 2. Get total supply
             const supplyRes = await axios.get(`${baseUrl}&module=stats&action=tokensupply&contractaddress=${address}`);
             totalSupply = supplyRes.data?.result || '0';
+            console.log(supplyRes)
 
             // 3. Get token holder count
             const holderRes = await axios.get(`${baseUrl}&module=token&action=tokenholdercount&contractaddress=${address}`);
