@@ -146,6 +146,17 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
         {/* Contract Code Dropdown */}
         {showCode && analysis.sourceCode && (
           <div className="mt-4 bg-gray-900 rounded-lg border border-gray-700">
+            <div className="p-4">
+              <h3 className="text-white font-medium mb-2">Contract Source Code</h3>
+              <pre className="text-gray-300 text-xs overflow-x-auto whitespace-pre-wrap">
+                {analysis.sourceCode}
+              </pre>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Swap Analysis */}
       <div className="bg-gray-800 rounded-lg p-6">
         <h2 className="text-white text-xl font-bold mb-4">
           Swap Analysis <span className="text-gray-400 text-sm font-normal">(courtesy of honeypot.is)</span>
