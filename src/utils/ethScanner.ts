@@ -114,6 +114,34 @@ export class EthereumContractScanner {
                     console.warn('Could not fetch token image:', imageError);
                 }
             }
+
+            // 7. Get real liquidity data from CoinGecko
+            let liquidityUSD = 0;
+            try {
+                const geckoRes = await axios.get(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${address.toLowerCase()}`);
+                if (geckoRes.data?.market_data?.total_value_locked?.usd) {
+                    liquidityUSD = geckoRes.data.market_data.total_value_locked.usd;
+                } else if (geckoRes.data?.market_data?.market_cap?.usd) {
+                    // Fallback: estimate liquidity as a percentage of market cap
+                    liquidityUSD = geckoRes.data.market_data.market_cap.usd * 0.1; // Rough estimate
+                }
+            } catch (liquidityError) {
+                console.warn('Could not fetch liquidity data from CoinGecko:', liquidityError);
+                
+                // Try alternative approach using DexScreener API
+                try {
+                    const dexRes = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
+                    if (dexRes.data?.pairs && dexRes.data.pairs.length > 0) {
+                        // Sum liquidity from all pairs
+                        liquidityUSD = dexRes.data.pairs.reduce((total: number, pair: any) => {
+                            return total + (parseFloat(pair.liquidity?.usd || '0') || 0);
+                        }, 0);
+                    }
+                } catch (dexError) {
+                    console.warn('Could not fetch liquidity data from DexScreener:', dexError);
+                    // Keep liquidityUSD as 0 if all attempts fail
+                }
+            }
         } catch (error) {
             console.error('Error fetching contract data:', error);
             
@@ -145,7 +173,7 @@ export class EthereumContractScanner {
             isVerified,
             holderCount,
             totalSupply: this.formatNumber(Number(totalSupply)),
-            liquidity: '$' + this.formatNumber(this.randomNumber(1000, 500000)),
+            liquidity: liquidityUSD > 0 ? '$' + this.formatLiquidity(liquidityUSD) : 'Unknown',
             topHolderPercent: this.randomNumber(15, 80) + '%',
             isRenounced,
             riskFactors
@@ -214,6 +242,16 @@ export class EthereumContractScanner {
 
     static formatNumber(num: number): string {
         return num.toLocaleString();
+    }
+
+    static formatLiquidity(amount: number): string {
+        if (amount >= 1000000) {
+            return (amount / 1000000).toFixed(2) + 'M';
+        } else if (amount >= 1000) {
+            return (amount / 1000).toFixed(1) + 'K';
+        } else {
+            return amount.toFixed(0);
+        }
     }
 
     static formatAge(creationTimestamp: number): string {
