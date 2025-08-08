@@ -146,25 +146,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
         {/* Contract Code Dropdown */}
         {showCode && analysis.sourceCode && (
           <div className="mt-4 bg-gray-900 rounded-lg border border-gray-700">
-            <div className="p-4 border-b border-gray-700"> {/* THIS IS THE SELECTED ELEMENT */}
-              <div className="flex items-center justify-between">
-                <h3 className="text-white font-medium">
-                  {analysis.tokenName} ({analysis.tokenSymbol})
-                </h3>
-                <div className="flex items-center gap-4 text-sm">
-                  <span className="text-gray-400">
-                    ETH: {analysis.address}
-                  </span>
-                  <label className="flex items-center gap-2 text-gray-400">
-                    <input 
-                      type="checkbox" 
-                      className="rounded"
-                      defaultChecked={false}
-                    />
-                    Hide comment/pragma lines
-                  </label>
-                </div>
-              </div>
+          
             </div>
             <div className="p-4">
               <pre className="text-gray-300 font-mono text-sm overflow-auto max-h-96 whitespace-pre-wrap">
