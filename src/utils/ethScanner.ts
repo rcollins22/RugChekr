@@ -221,18 +221,18 @@ export class EthereumContractScanner {
                 honeypotData = honeypotRes.data;
                 
                 // Set honeypot status
-                honeypotStatus = honeypotData.isHoneypot ? 'Potential Honeypot' : 'Sellable';
+                honeypotStatus = honeypotData.honeypotResult?.isHoneypot ? 'Potential Honeypot' : 'Sellable';
                 
                 // Set transaction fees from buy/sell tax
-                const buyTax = parseFloat(honeypotData.buyTax || '0');
-                const sellTax = parseFloat(honeypotData.sellTax || '0');
+                const buyTax = parseFloat(honeypotData.simulationResult?.buyTax || '0');
+                const sellTax = parseFloat(honeypotData.simulationResult?.sellTax || '0');
                 const avgTax = (buyTax + sellTax) / 2;
                 transactionFees = `${avgTax.toFixed(1)}%`;
                 
                 // Set liquidity lock status
-                if (honeypotData.lpBurned) {
+                if (honeypotData.pair?.lpBurned) {
                     liquidityLockStatus = 'Liquidity Burned (Permanent)';
-                } else if (honeypotData.lpLocked) {
+                } else if (honeypotData.pair?.lpLocked) {
                     liquidityLockStatus = 'Locked';
                 } else {
                     liquidityLockStatus = 'Not locked';
