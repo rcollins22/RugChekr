@@ -38,6 +38,7 @@ export class EthereumContractScanner {
         }
 
         const baseUrl = `https://api.etherscan.io/v2/api?chainis=1apikey=${apiKey}`;
+        const baseUrl = `https://api.etherscan.io/api?apikey=${apiKey}`;
 
         let liquidityUSD = 0;
         let source = '';
