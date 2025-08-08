@@ -31,13 +31,21 @@ function App() {
 
     setError('');
     setIsLoading(true);
+    setAnalysis(null); // Clear previous results
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const result = ContractAnalyzer.analyzeContract(address);
-    setAnalysis(result);
-    setIsLoading(false);
+    try {
+      const result = await ContractAnalyzer.analyzeContract(address);
+      setAnalysis(result);
+    } catch (error) {
+      console.error('Contract analysis error:', error);
+      setError(
+        error instanceof Error 
+          ? error.message 
+          : 'Failed to analyze contract. Please check the address and try again.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

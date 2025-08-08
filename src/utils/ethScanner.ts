@@ -32,8 +32,10 @@ export interface ContractAnalysis {
 
 export class EthereumContractScanner {
     static async analyzeContract(address: string): Promise<ContractAnalysis> {
-        const apiKey = Config.ETHERSCAN_API
-        if (!apiKey) throw new Error('ETHERSCAN_API not set in .env file');
+        const apiKey = Config.ETHERSCAN_API;
+        if (!apiKey || apiKey === 'YOURKEYHERE') {
+            throw new Error('Etherscan API key not configured. Please add your API key to the config file.');
+        }
 
         const baseUrl = `https://api.etherscan.io/api?apikey=${apiKey}`;
 
@@ -46,6 +48,11 @@ export class EthereumContractScanner {
         try {
             // 1. Get contract source code (to detect isVerified & renounced)
             const sourceRes = await axios.get(`${baseUrl}&module=contract&action=getsourcecode&address=${address}`);
+            
+            if (sourceRes.data?.status === '0') {
+                throw new Error(sourceRes.data?.message || 'Failed to fetch contract data from Etherscan');
+            }
+            
             const sourceResult = sourceRes.data?.result?.[0];
             source = sourceResult?.SourceCode || '';
             isVerified = !!source;
@@ -61,7 +68,19 @@ export class EthereumContractScanner {
             const holderRes = await axios.get(`${baseUrl}&module=token&action=tokenholdercount&contractaddress=${address}`);
             holderCount = parseInt(holderRes.data?.result || '0');
         } catch (error) {
-            console.error(`Error fetching contract data:`, error);
+            console.error('Error fetching contract data:', error);
+            
+            if (axios.isAxiosError(error)) {
+                if (error.response?.status === 429) {
+                    throw new Error('Rate limit exceeded. Please try again in a few moments.');
+                } else if (error.response?.status === 401) {
+                    throw new Error('Invalid Etherscan API key. Please check your configuration.');
+                } else if (error.code === 'NETWORK_ERROR' || !error.response) {
+                    throw new Error('Network error. Please check your internet connection and try again.');
+                }
+            }
+            
+            throw error;
         }
 
         const riskFactors = this.scanSourceCode(source);

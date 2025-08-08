@@ -21,8 +21,7 @@ export class ContractAnalyzer {
         },
       };
     } else {
-      // TODO: Add Solana contract support
-      throw new Error('Solana contract scanning not yet supported.');
+      throw new Error('Solana contract scanning is not yet supported. Please use an Ethereum contract address.');
     }
   }
 
