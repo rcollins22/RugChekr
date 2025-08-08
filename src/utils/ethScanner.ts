@@ -47,6 +47,7 @@ export class EthereumContractScanner {
         let tokenName = '';
         let tokenSymbol = '';
         let tokenImage = '';
+        let contractAge = 'Unknown';
 
         try {
             // 1. Get contract source code (to detect isVerified & renounced)
@@ -63,16 +64,34 @@ export class EthereumContractScanner {
             const owner = sourceResult?.ContractCreator;
             isRenounced = !owner || owner === '0x0000000000000000000000000000000000000000';
 
-            // 2. Get total supply
+            // 2. Get contract creation transaction to calculate age
+            try {
+                const creationRes = await axios.get(`${baseUrl}&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=1&sort=asc`);
+                if (creationRes.data?.status === '1' && creationRes.data?.result?.length > 0) {
+                    const creationTx = creationRes.data.result[0];
+                    const creationTimestamp = parseInt(creationTx.timeStamp) * 1000; // Convert to milliseconds
+                    contractAge = this.formatAge(creationTimestamp);
+                }
+            } catch (ageError) {
+                console.warn('Could not fetch contract creation time:', ageError);
+                contractAge = 'Unknown';
+            }
+
+            // 3. Get total supply
             const supplyRes = await axios.get(`${baseUrl}&module=stats&action=tokensupply&contractaddress=${address}`);
             totalSupply = supplyRes.data?.result || '0';
-            console.log(supplyRes)
 
-            // 3. Get token holder count
+            // 4. Get token holder count
             const holderRes = await axios.get(`${baseUrl}&module=token&action=tokenholdercount&contractaddress=${address}`);
-            holderCount = parseInt(holderRes.data?.result || '0');
+            if (holderRes.data?.status === '1' && holderRes.data?.result) {
+                holderCount = parseInt(holderRes.data.result);
+            } else {
+                // Fallback: try to get holder count from token info
+                console.warn('Direct holder count failed, trying alternative method');
+                holderCount = 0;
+            }
 
-            // 4. Get token info (name, symbol)
+            // 5. Get token info (name, symbol)
             try {
                 const tokenInfoRes = await axios.get(`${baseUrl}&module=token&action=tokeninfo&contractaddress=${address}`);
                 if (tokenInfoRes.data?.status === '1' && tokenInfoRes.data?.result) {
@@ -84,7 +103,7 @@ export class EthereumContractScanner {
                 console.warn('Could not fetch token info:', tokenError);
             }
 
-            // 5. Try to get token image from CoinGecko (fallback)
+            // 6. Try to get token image from CoinGecko (fallback)
             if (tokenSymbol) {
                 try {
                     const geckoRes = await axios.get(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${address.toLowerCase()}`);
@@ -122,7 +141,7 @@ export class EthereumContractScanner {
             tokenImage,
             riskScore,
             riskLevel: this.getRiskLevel(riskScore),
-            contractAge: this.randomChoice(['2 hours', '1 day', '3 days', '1 week', '2 weeks', '1 month']),
+            contractAge,
             isVerified,
             holderCount,
             totalSupply: this.formatNumber(Number(totalSupply)),
@@ -195,5 +214,34 @@ export class EthereumContractScanner {
 
     static formatNumber(num: number): string {
         return num.toLocaleString();
+    }
+
+    static formatAge(creationTimestamp: number): string {
+        const now = Date.now();
+        const ageMs = now - creationTimestamp;
+        
+        const seconds = Math.floor(ageMs / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        const weeks = Math.floor(days / 7);
+        const months = Math.floor(days / 30);
+        const years = Math.floor(days / 365);
+
+        if (years > 0) {
+            return years === 1 ? '1 year ago' : `${years} years ago`;
+        } else if (months > 0) {
+            return months === 1 ? '1 month ago' : `${months} months ago`;
+        } else if (weeks > 0) {
+            return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+        } else if (days > 0) {
+            return days === 1 ? '1 day ago' : `${days} days ago`;
+        } else if (hours > 0) {
+            return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+        } else if (minutes > 0) {
+            return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`;
+        } else {
+            return 'Just now';
+        }
     }
 }
