@@ -368,7 +368,8 @@ export class EthereumContractScanner {
                 totalSupply: this.formatNumber(Number(totalSupply)),
                 circulatingSupply,
                 burnedSupply
-            }
+            },
+            sourceCode: source
         };
     }
 

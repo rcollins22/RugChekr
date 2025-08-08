@@ -14,6 +14,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [showAIResponse, setShowAIResponse] = useState(false);
   const [aiError, setAiError] = useState<string>('');
+  const [showCode, setShowCode] = useState(false);
 
   if (!analysis || !analysis.riskLevel) {
     return null;
@@ -131,13 +132,47 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded border border-yellow-500 transition-colors">
+          <button 
+            onClick={() => setShowCode(!showCode)}
+            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded border border-yellow-500 transition-colors"
+          >
             CONTRACT
           </button>
           <button className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded border border-yellow-500 transition-colors">
             BUBBLE MAP
           </button>
         </div>
+
+        {/* Contract Code Dropdown */}
+        {showCode && analysis.sourceCode && (
+          <div className="mt-4 bg-gray-900 rounded-lg border border-gray-700">
+            <div className="p-4 border-b border-gray-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-white font-medium">
+                  {analysis.tokenName} ({analysis.tokenSymbol})
+                </h3>
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="text-gray-400">
+                    ETH: {analysis.address}
+                  </span>
+                  <label className="flex items-center gap-2 text-gray-400">
+                    <input 
+                      type="checkbox" 
+                      className="rounded"
+                      defaultChecked={false}
+                    />
+                    Hide comment/pragma lines
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="p-4">
+              <pre className="text-gray-300 font-mono text-sm overflow-auto max-h-96 whitespace-pre-wrap">
+                {analysis.sourceCode}
+              </pre>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Score Section */}

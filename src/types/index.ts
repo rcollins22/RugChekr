@@ -43,6 +43,7 @@ export interface ContractAnalysis {
     circulatingSupply: string;
     burnedSupply: string;
   };
+  sourceCode?: string;
 }
 
 export interface Settings {
