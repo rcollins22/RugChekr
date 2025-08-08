@@ -63,6 +63,7 @@ export class EthereumContractScanner {
         let liquidityLockStatus = 'Unknown';
         let circulatingSupply = '0';
         let burnedSupply = '0';
+        let honeypotData: any = null;
 
         try {
             // 1. Get contract source code (to detect isVerified & renounced)
@@ -194,6 +195,58 @@ export class EthereumContractScanner {
             throw error;
         }
 
+        // Fetch honeypot data from honeypot.is API
+        try {
+            const honeypotRes = await axios.get(`https://api.honeypot.is/v2/IsHoneypot?address=${address}`);
+            if (honeypotRes.data) {
+                honeypotData = honeypotRes.data;
+                
+                // Set honeypot status
+                honeypotStatus = honeypotData.isHoneypot ? 'Potential Honeypot' : 'Sellable';
+                
+                // Set transaction fees from buy/sell tax
+                const buyTax = parseFloat(honeypotData.buyTax || '0');
+                const sellTax = parseFloat(honeypotData.sellTax || '0');
+                const avgTax = (buyTax + sellTax) / 2;
+                transactionFees = `${avgTax.toFixed(1)}%`;
+                
+                // Set liquidity lock status
+                if (honeypotData.lpBurned) {
+                    liquidityLockStatus = 'Liquidity Burned (Permanent)';
+                } else if (honeypotData.lpLocked) {
+                    liquidityLockStatus = 'Locked';
+                } else {
+                    liquidityLockStatus = 'Not locked';
+                }
+            }
+        } catch (honeypotError) {
+            console.warn('Could not fetch honeypot data:', honeypotError);
+            // Keep default values if honeypot API fails
+        }
+
+        // Fetch creator's token balance
+        let creatorBalance = '0';
+        if (contractCreator && contractCreator !== '0x0000000000000000000000000000000000000000') {
+            try {
+                const creatorBalanceRes = await axios.get(`${baseUrl}&module=account&action=tokenbalance&contractaddress=${address}&address=${contractCreator}&tag=latest`);
+                if (creatorBalanceRes.data?.status === '1') {
+                    creatorBalance = creatorBalanceRes.data.result || '0';
+                }
+            } catch (balanceError) {
+                console.warn('Could not fetch creator balance:', balanceError);
+            }
+        }
+
+        // Fetch burned supply from dead address
+        let burnedBalance = '0';
+        try {
+            const burnedBalanceRes = await axios.get(`${baseUrl}&module=account&action=tokenbalance&contractaddress=${address}&address=0x000000000000000000000000000000000000dead&tag=latest`);
+            if (burnedBalanceRes.data?.status === '1') {
+                burnedBalance = burnedBalanceRes.data.result || '0';
+            }
+        } catch (burnError) {
+            console.warn('Could not fetch burned balance:', burnError);
+        }
         // Calculate additional metrics
         const riskFactors = this.scanSourceCode(source);
         const riskScore = this.generateRiskScore(riskFactors);
@@ -201,35 +254,49 @@ export class EthereumContractScanner {
         // Calculate audit score (inverse of risk score with some adjustments)
         auditScore = Math.max(0, 100 - riskScore - this.randomNumber(0, 20));
         
-        // Mock honeypot status (would require actual honeypot API integration)
-        honeypotStatus = riskScore > 70 ? 'Potential Honeypot' : 'Sellable';
+        // If honeypot data wasn't fetched, use fallback based on risk score
+        if (!honeypotData) {
+            honeypotStatus = riskScore > 70 ? 'Potential Honeypot' : 'Sellable';
+        }
         
-        // Mock ownership control analysis
-        const creatorHoldingPercent = this.randomNumber(0, 85);
-        creatorWalletHoldings = `${creatorHoldingPercent}%`;
+        // Calculate creator holding percentage
+        const totalSupplyNum = Number(totalSupply);
+        const creatorBalanceNum = Number(creatorBalance);
+        const creatorHoldingPercent = totalSupplyNum > 0 ? (creatorBalanceNum / totalSupplyNum) * 100 : 0;
+        creatorWalletHoldings = `${creatorHoldingPercent.toFixed(2)}%`;
         ownershipControl = creatorHoldingPercent > 5 
             ? `Creator controls ${creatorHoldingPercent}% of supply` 
             : 'Creator controls less than 5%';
         
-        // Mock top 10 holder analysis
+        // Mock top 10 holder analysis (requires advanced blockchain analytics)
+        // TODO: Integrate with Moralis, Alchemy, or similar service for accurate holder distribution
         top10HolderPercentage = `${this.randomNumber(60, 95)}%`;
         
-        // Mock liquidity analysis
-        const isLiquidityLocked = this.randomNumber(0, 100) > 60;
-        liquidityLockStatus = isLiquidityLocked ? 'Locked for 15+ days' : 'Not locked';
+        // Set liquidity status based on amount and lock status
         liquidityStatus = liquidityUSD < 1000 
             ? `Inadequate Liquidity - ${liquidityLockStatus}` 
             : `Adequate Liquidity - ${liquidityLockStatus}`;
         
-        // Mock liquidity provider (would need DEX API integration)
-        liquidityProvider = contractCreator || '0x' + Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('');
-        
-        // Mock transaction fees
-        transactionFees = `${this.randomNumber(0, 10) / 10}%`;
+        // Try to get liquidity provider from DexScreener data
+        try {
+            const dexRes = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
+            if (dexRes.data?.pairs && dexRes.data.pairs.length > 0) {
+                liquidityProvider = dexRes.data.pairs[0].pairAddress || contractCreator;
+                
+                // Update liquidity USD if we got better data
+                if (liquidityUSD === 0 && dexRes.data.pairs[0].liquidity?.usd) {
+                    liquidityUSD = parseFloat(dexRes.data.pairs[0].liquidity.usd);
+                }
+            } else {
+                liquidityProvider = contractCreator || '0x' + Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+            }
+        } catch (dexError) {
+            console.warn('Could not fetch DEX data:', dexError);
+            liquidityProvider = contractCreator || '0x' + Array(40).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+        }
         
         // Calculate circulating and burned supply
-        const totalSupplyNum = Number(totalSupply);
-        const burnedSupplyNum = Math.floor(totalSupplyNum * this.randomNumber(0, 20) / 100);
+        const burnedSupplyNum = Number(burnedBalance);
         const circulatingSupplyNum = totalSupplyNum - burnedSupplyNum;
         
         circulatingSupply = this.formatNumber(circulatingSupplyNum);
