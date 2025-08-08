@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Config } from './config';
+import { BitQueryScanner, HolderAnalysis } from './bitqueryScanner';
 
 
 export type Severity = 'low' | 'medium' | 'high';
@@ -322,6 +323,15 @@ export class EthereumContractScanner {
         circulatingSupply = this.formatNumber(circulatingSupplyNum);
         burnedSupply = this.formatNumber(burnedSupplyNum);
 
+        // Fetch BitQuery holder data
+        let bitqueryData: HolderAnalysis | undefined;
+        try {
+            bitqueryData = await BitQueryScanner.getTokenHolders(address, contractCreator);
+        } catch (bitqueryError) {
+            console.warn('Could not fetch BitQuery holder data:', bitqueryError);
+            bitqueryData = undefined;
+        }
+
         // Final debug log of all extracted data
         console.log('Final analysis data:', {
             tokenName,
@@ -369,7 +379,7 @@ export class EthereumContractScanner {
                 circulatingSupply,
                 burnedSupply
             },
-            bitqueryHolderData: holderAnalysis || undefined,
+            bitqueryHolderData: bitqueryData,
             sourceCode: source
         };
     }
