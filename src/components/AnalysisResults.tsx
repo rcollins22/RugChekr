@@ -146,28 +146,6 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
         {/* Contract Code Dropdown */}
         {showCode && analysis.sourceCode && (
           <div className="mt-4 bg-gray-900 rounded-lg border border-gray-700">
-          
-            </div>
-            <div className="p-4">
-              <pre className="text-gray-300 font-mono text-sm overflow-auto max-h-96 whitespace-pre-wrap">
-                {analysis.sourceCode}
-              </pre>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Score Section */}
-      <div className="bg-gray-800 rounded-lg p-6">
-        <h2 className="text-white text-xl font-bold mb-2">
-          Score: <span className="text-red-500">{analysis.auditScore}/100</span>
-        </h2>
-        <p className="text-gray-400 text-sm leading-relaxed">
-          The audit score is a measure of how well the token meets the criteria for safety. Automated scanners like this one are not always completely accurate. A token with a high score may still have hidden malicious code. The score is not advice and should be considered along with other factors. Always do your own research and consult multiple sources of information. Results are regenerated every 15 minutes.
-        </p>
-      </div>
-
-      {/* Swap Analysis */}
       <div className="bg-gray-800 rounded-lg p-6">
         <h2 className="text-white text-xl font-bold mb-4">
           Swap Analysis <span className="text-gray-400 text-sm font-normal">(courtesy of honeypot.is)</span>
