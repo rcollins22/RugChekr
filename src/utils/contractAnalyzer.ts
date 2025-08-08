@@ -1,5 +1,5 @@
 import { RiskFactor, RiskLevel, ContractAnalysis } from '../types';
-import { EthereumContractScanner } from './ethScanner'; // adjust path if needed
+import { EthereumContractScanner } from './ethScanner'; 
 
 export class ContractAnalyzer {
   static isValidAddress(address: string): boolean {
@@ -26,7 +26,7 @@ export class ContractAnalyzer {
     }
   }
 
-  // Utility functions still here for future use
+  // Utility functions JIC
   private static calculateRiskScore(riskFactors: RiskFactor[]): number {
     const totalPoints = riskFactors.reduce((sum, factor) => sum + factor.points, 0);
     return Math.min(100, totalPoints);
