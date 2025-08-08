@@ -146,7 +146,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
         {/* Contract Code Dropdown */}
         {showCode && analysis.sourceCode && (
           <div className="mt-4 bg-gray-900 rounded-lg border border-gray-700">
-            <div className="p-4 border-b border-gray-700">
+            <div className="p-4 border-b border-gray-700"> {/* THIS IS THE SELECTED ELEMENT */}
               <div className="flex items-center justify-between">
                 <h3 className="text-white font-medium">
                   {analysis.tokenName} ({analysis.tokenSymbol})
