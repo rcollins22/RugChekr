@@ -10,13 +10,17 @@ interface AnalysisResultsProps {
 }
 
 export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiKey }) => {
+  if (!analysis || !analysis.riskLevel) {
+    return null; // or return a loading state
+  }
   const [aiExplanation, setAiExplanation] = useState<string>('');
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [showAIResponse, setShowAIResponse] = useState(false);
   const [aiError, setAiError] = useState<string>('');
 
   const getRiskIcon = () => {
-    switch (analysis.riskLevel.color) {
+    const color = analysis?.riskLevel?.color;
+    switch (color) {
       case 'red':
         return <AlertTriangle className="w-8 h-8 text-red-500" />;
       case 'yellow':
@@ -24,7 +28,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
       case 'green':
         return <Shield className="w-8 h-8 text-green-500" />;
       default:
-        return <AlertTriangle className="w-8 h-8 text-red-500" />;
+        return <AlertTriangle className="w-8 h-8 text-gray-500" />;
     }
   };
 

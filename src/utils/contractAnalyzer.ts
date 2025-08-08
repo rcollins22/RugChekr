@@ -12,12 +12,7 @@ export class ContractAnalyzer {
     const isEthereum = address.startsWith('0x');
 
     if (isEthereum) {
-      const analysis = await EthereumContractScanner.analyzeContract(address);
-      // Ensure riskLevel.color is strictly typed
-      const allowedColors = ['red', 'yellow', 'green'] as const;
-      if (!allowedColors.includes(analysis.riskLevel.color as any)) {
-        throw new Error(`Invalid riskLevel.color: ${analysis.riskLevel.color}`);
-      }
+      const analysis = await EthereumContractScanner.analyzeContract(address);    
       return {
         ...analysis,
         riskLevel: {
