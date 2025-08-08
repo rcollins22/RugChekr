@@ -39,6 +39,7 @@ export class EthereumContractScanner {
 
         const baseUrl = `https://api.etherscan.io/api?apikey=${apiKey}`;
 
+        let liquidityUSD = 0;
         let source = '';
         let isVerified = false;
         let totalSupply = '0';
@@ -116,7 +117,6 @@ export class EthereumContractScanner {
             }
 
             // 7. Get real liquidity data from CoinGecko
-            let liquidityUSD = 0;
             try {
                 const geckoRes = await axios.get(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${address.toLowerCase()}`);
                 if (geckoRes.data?.market_data?.total_value_locked?.usd) {
