@@ -148,7 +148,9 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
           <div className="mt-4 bg-gray-900 rounded-lg border border-gray-700">
             <div className="p-4">
               <h3 className="text-white font-medium mb-2">Contract Source Code</h3>
+              <h3 className="text-white font-medium mb-2">Contract Source Code</h3>
               <pre className="text-gray-300 text-xs overflow-x-auto whitespace-pre-wrap">
+                {analysis.sourceCode}
                 {analysis.sourceCode}
               </pre>
             </div>
