@@ -369,6 +369,7 @@ export class EthereumContractScanner {
                 circulatingSupply,
                 burnedSupply
             },
+            bitqueryHolderData: holderAnalysis || undefined,
             sourceCode: source
         };
     }

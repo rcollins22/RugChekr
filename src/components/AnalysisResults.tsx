@@ -242,6 +242,45 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
           <button className="text-blue-400 hover:text-blue-300 underline">View Bubble Map</button>
         </div>
         
+        {/* BitQuery Holder Data */}
+        {analysis.bitqueryHolderData && analysis.bitqueryHolderData.totalHolders > 0 && (
+          <div className="mb-6 bg-gray-700 rounded-lg p-4">
+            <h3 className="text-white font-medium mb-3">Top Token Holders</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-gray-400 text-sm">Total Holders</p>
+                <p className="text-white font-medium">{analysis.bitqueryHolderData.totalHolders.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm">Top 10 Holdings</p>
+                <p className="text-white font-medium">{analysis.bitqueryHolderData.top10Percentage.toFixed(1)}%</p>
+              </div>
+            </div>
+            
+            {analysis.bitqueryHolderData.topHolders.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-gray-400 text-sm mb-2">Top Holders:</p>
+                {analysis.bitqueryHolderData.topHolders.slice(0, 5).map((holder, index) => (
+                  <div key={holder.address} className="flex justify-between items-center text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400">#{index + 1}</span>
+                      <a 
+                        href={`https://etherscan.io/address/${holder.address}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 font-mono text-xs"
+                      >
+                        {holder.address.slice(0, 6)}...{holder.address.slice(-4)}
+                      </a>
+                    </div>
+                    <span className="text-white font-medium">{holder.percentage.toFixed(2)}%</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
         <div className="space-y-4">
           <div className="flex items-start gap-3">
             {getStatusIcon(false)}
