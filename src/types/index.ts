@@ -12,6 +12,9 @@ export interface RiskLevel {
 export interface ContractAnalysis {
   address: string;
   network: 'Ethereum' | 'Solana';
+  tokenName?: string;
+  tokenSymbol?: string;
+  tokenImage?: string;
   riskScore: number;
   riskLevel: RiskLevel;
   contractAge: string;

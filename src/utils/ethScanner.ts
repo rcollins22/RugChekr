@@ -44,6 +44,9 @@ export class EthereumContractScanner {
         let totalSupply = '0';
         let holderCount = 0;
         let isRenounced = false;
+        let tokenName = '';
+        let tokenSymbol = '';
+        let tokenImage = '';
 
         try {
             // 1. Get contract source code (to detect isVerified & renounced)
@@ -67,6 +70,30 @@ export class EthereumContractScanner {
             // 3. Get token holder count
             const holderRes = await axios.get(`${baseUrl}&module=token&action=tokenholdercount&contractaddress=${address}`);
             holderCount = parseInt(holderRes.data?.result || '0');
+
+            // 4. Get token info (name, symbol)
+            try {
+                const tokenInfoRes = await axios.get(`${baseUrl}&module=token&action=tokeninfo&contractaddress=${address}`);
+                if (tokenInfoRes.data?.status === '1' && tokenInfoRes.data?.result) {
+                    const tokenInfo = tokenInfoRes.data.result[0];
+                    tokenName = tokenInfo?.tokenName || '';
+                    tokenSymbol = tokenInfo?.symbol || '';
+                }
+            } catch (tokenError) {
+                console.warn('Could not fetch token info:', tokenError);
+            }
+
+            // 5. Try to get token image from CoinGecko (fallback)
+            if (tokenSymbol) {
+                try {
+                    const geckoRes = await axios.get(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${address.toLowerCase()}`);
+                    if (geckoRes.data?.image?.small) {
+                        tokenImage = geckoRes.data.image.small;
+                    }
+                } catch (imageError) {
+                    console.warn('Could not fetch token image:', imageError);
+                }
+            }
         } catch (error) {
             console.error('Error fetching contract data:', error);
             
@@ -89,6 +116,9 @@ export class EthereumContractScanner {
         return {
             address,
             network: 'Ethereum',
+            tokenName,
+            tokenSymbol,
+            tokenImage,
             riskScore,
             riskLevel: this.getRiskLevel(riskScore),
             contractAge: this.randomChoice(['2 hours', '1 day', '3 days', '1 week', '2 weeks', '1 month']),

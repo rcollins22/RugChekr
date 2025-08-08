@@ -80,6 +80,36 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
 
   return (
     <div className="space-y-6">
+      {/* Token Info */}
+      {(analysis.tokenName || analysis.tokenSymbol) && (
+        <div className="text-center mb-6">
+          <div className="flex items-center justify-center gap-4 mb-2">
+            {analysis.tokenImage && (
+              <img 
+                src={analysis.tokenImage} 
+                alt={analysis.tokenName || analysis.tokenSymbol} 
+                className="w-12 h-12 rounded-full border-2 border-white/20"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            )}
+            <div>
+              {analysis.tokenName && (
+                <h2 className="text-2xl font-bold text-white mb-1">
+                  {analysis.tokenName}
+                </h2>
+              )}
+              {analysis.tokenSymbol && (
+                <p className="text-lg text-white/80 font-medium">
+                  ${analysis.tokenSymbol}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Risk Score */}
       <div className="text-center">
         <div className="flex items-center justify-center mb-4">
