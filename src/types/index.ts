@@ -16,15 +16,33 @@ export interface ContractAnalysis {
   tokenSymbol?: string;
   tokenImage?: string;
   riskScore: number;
+  auditScore: number;
   riskLevel: RiskLevel;
   contractAge: string;
   isVerified: boolean;
+  honeypotStatus: string;
+  sourceCodeStatus: string;
+  ownerRenouncement: string;
+  ownershipControl: string;
+  liquidityStatus: string;
+  liquidityProvider: string;
+  creatorWalletHoldings: string;
+  top10HolderPercentage: string;
   holderCount: number;
   totalSupply: string;
   liquidity: string;
   topHolderPercent: string;
   isRenounced: boolean;
   riskFactors: RiskFactor[];
+  contractCreator: string;
+  creatorWalletContains: string;
+  liquidityLockStatus: string;
+  transactionFees: string;
+  holderAnalysis: {
+    totalSupply: string;
+    circulatingSupply: string;
+    burnedSupply: string;
+  };
 }
 
 export interface Settings {
