@@ -132,10 +132,14 @@ export class EthereumContractScanner {
             // 5. Get token info (name, symbol)
             try {
                 const tokenInfoRes = await axios.get(`${baseUrl}&module=token&action=tokeninfo&contractaddress=${address}`);
+                console.log('Token Info API Response:', tokenInfoRes.data);
                 if (tokenInfoRes.data?.status === '1' && tokenInfoRes.data?.result) {
                     const tokenInfo = tokenInfoRes.data.result[0];
                     tokenName = tokenInfo?.tokenName || '';
                     tokenSymbol = tokenInfo?.symbol || '';
+                    console.log('Extracted token info:', { tokenName, tokenSymbol });
+                } else {
+                    console.warn('Token info API failed or returned no results:', tokenInfoRes.data);
                 }
             } catch (tokenError) {
                 console.warn('Could not fetch token info:', tokenError);
@@ -145,8 +149,12 @@ export class EthereumContractScanner {
             if (tokenSymbol) {
                 try {
                     const geckoRes = await axios.get(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${address.toLowerCase()}`);
+                    console.log('CoinGecko API Response:', geckoRes.data);
                     if (geckoRes.data?.image?.small) {
                         tokenImage = geckoRes.data.image.small;
+                        console.log('Token image found:', tokenImage);
+                    } else {
+                        console.warn('No token image found in CoinGecko response');
                     }
                 } catch (imageError) {
                     console.warn('Could not fetch token image:', imageError);
@@ -156,11 +164,14 @@ export class EthereumContractScanner {
             // 7. Get real liquidity data from CoinGecko
             try {
                 const geckoRes = await axios.get(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${address.toLowerCase()}`);
+                console.log('CoinGecko Liquidity API Response:', geckoRes.data);
                 if (geckoRes.data?.market_data?.total_value_locked?.usd) {
                     liquidityUSD = geckoRes.data.market_data.total_value_locked.usd;
+                    console.log('Liquidity from CoinGecko TVL:', liquidityUSD);
                 } else if (geckoRes.data?.market_data?.market_cap?.usd) {
                     // Fallback: estimate liquidity as a percentage of market cap
                     liquidityUSD = geckoRes.data.market_data.market_cap.usd * 0.1; // Rough estimate
+                    console.log('Liquidity estimated from market cap:', liquidityUSD);
                 }
             } catch (liquidityError) {
                 console.warn('Could not fetch liquidity data from CoinGecko:', liquidityError);
@@ -168,11 +179,13 @@ export class EthereumContractScanner {
                 // Try alternative approach using DexScreener API
                 try {
                     const dexRes = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
+                    console.log('DexScreener API Response:', dexRes.data);
                     if (dexRes.data?.pairs && dexRes.data.pairs.length > 0) {
                         // Sum liquidity from all pairs
                         liquidityUSD = dexRes.data.pairs.reduce((total: number, pair: any) => {
                             return total + (parseFloat(pair.liquidity?.usd || '0') || 0);
                         }, 0);
+                        console.log('Liquidity from DexScreener:', liquidityUSD);
                     }
                 } catch (dexError) {
                     console.warn('Could not fetch liquidity data from DexScreener:', dexError);
@@ -181,6 +194,11 @@ export class EthereumContractScanner {
             }
         } catch (error) {
             console.error('Error fetching contract data:', error);
+            console.error('Error details:', {
+                message: error instanceof Error ? error.message : 'Unknown error',
+                response: axios.isAxiosError(error) ? error.response?.data : null,
+                status: axios.isAxiosError(error) ? error.response?.status : null
+            });
             
             if (axios.isAxiosError(error)) {
                 if (error.response?.status === 429) {
@@ -198,6 +216,7 @@ export class EthereumContractScanner {
         // Fetch honeypot data from honeypot.is API
         try {
             const honeypotRes = await axios.get(`https://api.honeypot.is/v2/IsHoneypot?address=${address}`);
+            console.log('Honeypot API Response:', honeypotRes.data);
             if (honeypotRes.data) {
                 honeypotData = honeypotRes.data;
                 
@@ -280,6 +299,7 @@ export class EthereumContractScanner {
         // Try to get liquidity provider from DexScreener data
         try {
             const dexRes = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
+            console.log('DexScreener Liquidity Provider API Response:', dexRes.data);
             if (dexRes.data?.pairs && dexRes.data.pairs.length > 0) {
                 liquidityProvider = dexRes.data.pairs[0].pairAddress || contractCreator;
                 
@@ -301,6 +321,19 @@ export class EthereumContractScanner {
         
         circulatingSupply = this.formatNumber(circulatingSupplyNum);
         burnedSupply = this.formatNumber(burnedSupplyNum);
+
+        // Final debug log of all extracted data
+        console.log('Final analysis data:', {
+            tokenName,
+            tokenSymbol,
+            tokenImage,
+            contractAge,
+            isVerified,
+            honeypotStatus,
+            liquidityUSD,
+            totalSupply,
+            holderCount
+        });
 
         return {
             address,
