@@ -524,4 +524,29 @@ export class EthereumContractScanner {
             return 'Just now';
         }
     }
+
+    static decodeHexString(hex: string): string {
+        try {
+            // Remove 0x prefix
+            const cleanHex = hex.startsWith('0x') ? hex.slice(2) : hex;
+            
+            // Skip the first 64 characters (32 bytes) which contain offset and length info
+            const dataHex = cleanHex.slice(128);
+            
+            // Convert hex to string
+            let result = '';
+            for (let i = 0; i < dataHex.length; i += 2) {
+                const hexByte = dataHex.substr(i, 2);
+                const charCode = parseInt(hexByte, 16);
+                if (charCode > 0) { // Skip null bytes
+                    result += String.fromCharCode(charCode);
+                }
+            }
+            
+            return result.trim();
+        } catch (error) {
+            console.warn('Failed to decode hex string:', error);
+            return '';
+        }
+    }
 }
