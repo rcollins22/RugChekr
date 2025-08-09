@@ -132,30 +132,76 @@ export class EthereumContractScanner {
 
             // 5. Get token info (name, symbol)
             try {
-                const tokenInfoRes = await axios.get(`${baseUrl}&module=token&action=tokeninfo&contractaddress=${address}`);
-                console.log('Token Info API Response:', tokenInfoRes.data);
-                if (tokenInfoRes.data?.status === '1' && tokenInfoRes.data?.result) {
-                    const tokenInfo = tokenInfoRes.data.result[0];
-                    tokenName = tokenInfo?.tokenName || '';
-                    tokenSymbol = tokenInfo?.symbol || '';
-                    console.log('Extracted token info:', { tokenName, tokenSymbol });
-                } else {
-                    console.warn('Token info API failed or returned no results:', tokenInfoRes.data);
+                // Try multiple methods to get token info
+                
+                // Method 1: Direct contract calls for name and symbol
+                try {
+                    const nameRes = await axios.get(`${baseUrl}&module=proxy&action=eth_call&to=${address}&data=0x06fdde03&tag=latest`);
+                    const symbolRes = await axios.get(`${baseUrl}&module=proxy&action=eth_call&to=${address}&data=0x95d89b41&tag=latest`);
+                    
+                    if (nameRes.data?.result && nameRes.data.result !== '0x') {
+                        // Decode hex string to text
+                        const nameHex = nameRes.data.result;
+                        tokenName = this.decodeHexString(nameHex);
+                    }
+                    
+                    if (symbolRes.data?.result && symbolRes.data.result !== '0x') {
+                        // Decode hex string to text
+                        const symbolHex = symbolRes.data.result;
+                        tokenSymbol = this.decodeHexString(symbolHex);
+                    }
+                } catch (contractCallError) {
+                    console.warn('Contract call method failed:', contractCallError);
                 }
+                
+                // Method 2: Fallback to token info API if contract calls failed
+                if (!tokenName || !tokenSymbol) {
+                    const tokenInfoRes = await axios.get(`${baseUrl}&module=token&action=tokeninfo&contractaddress=${address}`);
+                    if (tokenInfoRes.data?.status === '1' && tokenInfoRes.data?.result) {
+                        const tokenInfo = tokenInfoRes.data.result[0];
+                        tokenName = tokenName || tokenInfo?.tokenName || '';
+                        tokenSymbol = tokenSymbol || tokenInfo?.symbol || '';
+                    }
+                }
+                
+                console.log('Final extracted token info:', { tokenName, tokenSymbol });
             } catch (tokenError) {
                 console.warn('Could not fetch token info:', tokenError);
             }
 
-            // 6. Try to get token image from CoinGecko (fallback)
-            if (tokenSymbol) {
+            // 6. Try to get token image from multiple sources
+            if (tokenSymbol || tokenName) {
                 try {
-                    const geckoRes = await axios.get(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${address.toLowerCase()}`);
-                    console.log('CoinGecko API Response:', geckoRes.data);
-                    if (geckoRes.data?.image?.small) {
-                        tokenImage = geckoRes.data.image.small;
-                        console.log('Token image found:', tokenImage);
-                    } else {
-                        console.warn('No token image found in CoinGecko response');
+                    // Try CoinGecko first
+                    try {
+                        const geckoRes = await axios.get(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${address.toLowerCase()}`);
+                        if (geckoRes.data?.image?.small) {
+                            tokenImage = geckoRes.data.image.small;
+                            // Also get name and symbol from CoinGecko if we don't have them
+                            if (!tokenName && geckoRes.data?.name) {
+                                tokenName = geckoRes.data.name;
+                            }
+                            if (!tokenSymbol && geckoRes.data?.symbol) {
+                                tokenSymbol = geckoRes.data.symbol.toUpperCase();
+                            }
+                        }
+                    } catch (geckoError) {
+                        console.warn('CoinGecko failed, trying DexScreener:', geckoError);
+                        
+                        // Fallback to DexScreener for token info and image
+                        const dexRes = await axios.get(`https://api.dexscreener.com/latest/dex/tokens/${address}`);
+                        if (dexRes.data?.pairs && dexRes.data.pairs.length > 0) {
+                            const pair = dexRes.data.pairs[0];
+                            if (pair.baseToken?.address?.toLowerCase() === address.toLowerCase()) {
+                                tokenName = tokenName || pair.baseToken.name || '';
+                                tokenSymbol = tokenSymbol || pair.baseToken.symbol || '';
+                                tokenImage = pair.info?.imageUrl || '';
+                            } else if (pair.quoteToken?.address?.toLowerCase() === address.toLowerCase()) {
+                                tokenName = tokenName || pair.quoteToken.name || '';
+                                tokenSymbol = tokenSymbol || pair.quoteToken.symbol || '';
+                                tokenImage = pair.info?.imageUrl || '';
+                            }
+                        }
                     }
                 } catch (imageError) {
                     console.warn('Could not fetch token image:', imageError);
