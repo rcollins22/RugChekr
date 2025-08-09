@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Config } from './config';
+import { Config } from './cconfig';
 import { BitQueryScanner, HolderAnalysis } from './bitqueryScanner';
 
 
