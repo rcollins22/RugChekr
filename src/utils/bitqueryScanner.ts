@@ -16,7 +16,7 @@ export interface HolderAnalysis {
 }
 
 export class BitQueryScanner {
-  private static readonly BITQUERY_ENDPOINT = 'https://graphql.bitquery.io';
+  private static readonly BITQUERY_ENDPOINT = 'https://streaming.bitquery.io/graphql';
 
   static async getTokenHolders(contractAddress: string, creatorAddress?: string): Promise<HolderAnalysis> {
     const apiKey = Config.BITQUERY_API;
@@ -27,32 +27,21 @@ export class BitQueryScanner {
     }
 
     try {
-      // GraphQL query to get token holders
+      // Updated GraphQL query using BitQuery's new API structure
       const query = `
-        query GetTokenHolders($token: String!) {
-          ethereum(network: ethereum) {
-            address(address: {is: $token}) {
-              balances(
-                currency: {is: $token}
-                limit: 100
-                orderBy: {descending: value}
-              ) {
-                address {
-                  address
-                }
-                value
-              }
-            }
-          }
-          
-          # Get total supply for percentage calculations
-          ethereum(network: ethereum) {
-            transfers(
-              currency: {is: $token}
-              options: {limit: 1}
+        {
+          EVM(dataset: archive, network: eth) {
+            TokenHolders(
+              date: "${new Date().toISOString().split('T')[0]}"
+              tokenSmartContract: "${contractAddress}"
+              limit: {count: 100}
+              orderBy: {descending: Balance_Amount}
             ) {
-              currency {
-                totalSupply
+              Holder {
+                Address
+              }
+              Balance {
+                Amount
               }
             }
           }
@@ -63,14 +52,12 @@ export class BitQueryScanner {
         this.BITQUERY_ENDPOINT,
         {
           query,
-          variables: {
-            token: contractAddress
-          }
+          variables: "{}"
         },
         {
           headers: {
             'Content-Type': 'application/json',
-            'X-API-KEY': apiKey
+            'Authorization': `Bearer ${apiKey}`
           }
         }
       );
@@ -80,10 +67,9 @@ export class BitQueryScanner {
         return this.getFallbackHolderData();
       }
 
-      const balances = response.data?.data?.ethereum?.address?.[0]?.balances || [];
-      const totalSupply = response.data?.data?.ethereum?.transfers?.[0]?.currency?.totalSupply || '0';
+      const tokenHolders = response.data?.data?.EVM?.TokenHolders || [];
       
-      return this.processHolderData(balances, totalSupply, creatorAddress);
+      return this.processHolderData(tokenHolders, creatorAddress);
     } catch (error) {
       console.error('BitQuery API error:', error);
       return this.getFallbackHolderData();
@@ -91,18 +77,21 @@ export class BitQueryScanner {
   }
 
   private static processHolderData(
-    balances: any[], 
-    totalSupply: string, 
+    tokenHolders: any[],
     creatorAddress?: string
   ): HolderAnalysis {
-    const totalSupplyNum = parseFloat(totalSupply) || 1;
     const holders: TokenHolder[] = [];
     let creatorHolding = 0;
+    
+    // Calculate total supply from all holders for percentage calculation
+    const totalSupplyNum = tokenHolders.reduce((sum, holder) => {
+      return sum + parseFloat(holder.Balance?.Amount || '0');
+    }, 0) || 1;
 
     // Process holder data
-    for (const balance of balances) {
-      const address = balance.address?.address;
-      const value = parseFloat(balance.value || '0');
+    for (const holder of tokenHolders) {
+      const address = holder.Holder?.Address;
+      const value = parseFloat(holder.Balance?.Amount || '0');
       const percentage = (value / totalSupplyNum) * 100;
 
       if (address && value > 0) {
