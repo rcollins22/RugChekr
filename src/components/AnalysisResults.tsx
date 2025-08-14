@@ -54,7 +54,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
   return (
     <div className="space-y-6">
       {/* Token Header */}
-      <div className="bg-gray-800 rounded-lg p-6">
+      <div className="bg-white/5 backdrop-blur-xl rounded-lg p-6 border border-white/10">
         <div className="flex items-center gap-4 mb-4">
           {analysis.tokenImage && (
             <img 
@@ -159,7 +159,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
       </div>
 
       {/* Swap Analysis */}
-      <div className="bg-gray-800 rounded-lg p-6">
+      <div className="bg-white/5 backdrop-blur-xl rounded-lg p-6 border border-white/10">
         <h2 className="text-white text-xl font-bold mb-4">
           Swap Analysis <span className="text-gray-400 text-sm font-normal">(courtesy of honeypot.is)</span>
         </h2>
@@ -180,7 +180,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
       </div>
 
       {/* Contract Analysis */}
-      <div className="bg-gray-800 rounded-lg p-6">
+      <div className="bg-white/5 backdrop-blur-xl rounded-lg p-6 border border-white/10">
         <h2 className="text-white text-xl font-bold mb-4">Contract Analysis</h2>
         
         <div className="space-y-4">
@@ -232,7 +232,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
       </div>
 
       {/* Holder Analysis */}
-      <div className="bg-gray-800 rounded-lg p-6">
+      <div className="bg-white/5 backdrop-blur-xl rounded-lg p-6 border border-white/10">
         <h2 className="text-white text-xl font-bold mb-2">
           Holder Analysis
         </h2>
@@ -244,7 +244,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
         
         {/* BitQuery Holder Data */}
         {analysis.bitqueryHolderData && analysis.bitqueryHolderData.totalHolders > 0 && (
-          <div className="mb-6 bg-gray-700 rounded-lg p-4">
+          <div className="mb-6 bg-white/5 backdrop-blur-xl rounded-lg p-4 border border-white/10">
             <h3 className="text-white font-medium mb-3">Top Token Holders</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
@@ -319,7 +319,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
       </div>
 
       {/* Liquidity Analysis */}
-      <div className="bg-gray-800 rounded-lg p-6">
+      <div className="bg-white/5 backdrop-blur-xl rounded-lg p-6 border border-white/10">
         <h2 className="text-white text-xl font-bold mb-4">Liquidity Analysis</h2>
         
         <p className="text-gray-400 text-sm mb-4">
@@ -411,7 +411,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
           )}
           <div className="space-y-6">
             {/* Token Header with Score */}
-            <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50">
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-4">
                   {analysis.tokenImage && (
@@ -462,7 +462,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
               </div>
 
               {/* Score Section */}
-              <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-700/30">
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
                 <h2 className="text-white text-xl font-semibold mb-4">Score</h2>
                 <div className="flex items-end gap-2 mb-4">
                   <span className="text-6xl font-bold text-red-400">{analysis.auditScore}</span>
@@ -478,7 +478,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
 
               {/* Contract Code Dropdown */}
               {showCode && analysis.sourceCode && (
-                <div className="mt-6 bg-gray-900/80 rounded-xl border border-gray-700/50 overflow-hidden">
+                <div className="mt-6 bg-white/5 backdrop-blur-xl rounded-xl border border-white/10 overflow-hidden">
                   <div className="p-4 border-b border-gray-700/50">
                     <h3 className="text-white font-medium">Contract Source Code</h3>
                   </div>
@@ -492,7 +492,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
             </div>
 
             {/* Swap Analysis */}
-            <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
+            <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
               <h2 className="text-white text-xl font-semibold mb-4">Swap Analysis</h2>
               
               <div className="space-y-4">
@@ -549,7 +549,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
                 )}
 
                 {aiExplanation && !isLoadingAI && (
-                  <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
+                  <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
                     <h3 className="font-semibold text-neon-cyan mb-4 flex items-center gap-2">
                       <Bot className="w-5 h-5" />
                       AI Analysis
