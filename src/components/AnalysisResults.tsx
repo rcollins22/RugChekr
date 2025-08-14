@@ -409,6 +409,158 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
               </div>
             </div>
           )}
+        <div className="space-y-6">
+          {/* Token Header with Score */}
+          <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-8 border border-gray-700/50">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-4">
+                {analysis.tokenImage && (
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold text-xl">
+                    <img 
+                      src={analysis.tokenImage} 
+                      alt={analysis.tokenName || analysis.tokenSymbol} 
+                      className="w-full h-full rounded-full object-cover"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.textContent = analysis.tokenSymbol?.slice(0, 3) || 'TKN';
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-1">
+                    {analysis.tokenName} ({analysis.tokenSymbol})
+                  </h1>
+                  <p className="text-gray-400 text-sm">
+                    {analysis.network}: {analysis.address.slice(0, 6)}...{analysis.address.slice(-6)}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-gray-400 text-sm mb-1">Contract Address</p>
+                <p className="text-white font-mono text-sm">
+                  {analysis.address.slice(0, 8)}...{analysis.address.slice(-6)}
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 mb-8">
+              <button 
+                onClick={() => setShowCode(!showCode)}
+                className="px-6 py-3 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-xl border border-cyan-500/30 transition-all duration-200 font-medium"
+              >
+                CONTRACT
+              </button>
+              <button className="px-6 py-3 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 rounded-xl border border-cyan-500/30 transition-all duration-200 font-medium">
+                BUBBLE MAP
+              </button>
+            </div>
+
+            {/* Score Section */}
+            <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-700/30">
+              <h2 className="text-white text-xl font-semibold mb-4">Score</h2>
+              <div className="flex items-end gap-2 mb-4">
+                <span className="text-6xl font-bold text-red-400">{analysis.auditScore}</span>
+              </div>
+              <div className="text-gray-400 text-sm space-y-1">
+                <p>Deployed {analysis.contractAge}</p>
+                <p className="text-xs leading-relaxed">
+                  The audit score is a measure of how well the token meets the criteria for safety. 
+                  Automated scanners like this one are not always complete.
+                </p>
+              </div>
+            </div>
+
+            {/* Contract Code Dropdown */}
+            {showCode && analysis.sourceCode && (
+              <div className="mt-6 bg-gray-900/80 rounded-xl border border-gray-700/50 overflow-hidden">
+                <div className="p-4 border-b border-gray-700/50">
+                  <h3 className="text-white font-medium">Contract Source Code</h3>
+                </div>
+                <div className="p-4 max-h-96 overflow-y-auto">
+                  <pre className="text-gray-300 text-xs whitespace-pre-wrap font-mono">
+                    {analysis.sourceCode}
+                  </pre>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Swap Analysis */}
+          <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
+            <h2 className="text-white text-xl font-semibold mb-4">Swap Analysis</h2>
+            
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                {getStatusIcon(analysis.honeypotStatus === 'Sellable')}
+                <div>
+                  <p className="text-white font-medium">
+                    Verified contract source
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                {getStatusIcon(analysis.honeypotStatus !== 'Sellable')}
+                <div>
+                  <p className="text-white font-medium">
+                    Ownership renounced or source not contain an owner contract
+                    <button className="text-blue-400 hover:text-blue-300 underline ml-2 text-sm">
+                      View Owner
+                    </button>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Explanation Button */}
+          <div className="text-center">
+            <button 
+              onClick={handleAIExplanation}
+              disabled={isLoadingAI}
+              className="px-8 py-3 bg-gradient-to-r from-neon-blue to-neon-cyan text-white font-semibold rounded-lg hover:from-neon-purple hover:to-neon-blue transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-neon-cyan/25 flex items-center gap-2 mx-auto"
+            >
+              <Bot className="w-5 h-5" />
+              {isLoadingAI ? 'Analyzing...' : 'Explain with AI'}
+            </button>
+          </div>
+
+          {/* AI Explanation Section */}
+          {showAIResponse && (
+            <div className="mt-6">
+              {isLoadingAI && (
+                <div className="text-center py-8">
+                  <LoadingSpinner size="md" color="border-neon-cyan" />
+                  <p className="text-gray-600 dark:text-white/80 mt-4">AI is analyzing the contract...</p>
+                </div>
+              )}
+
+              {aiError && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-6">
+                  <h3 className="font-semibold text-red-600 mb-2">Error</h3>
+                  <p className="text-red-600">{aiError}</p>
+                </div>
+              )}
+
+              {aiExplanation && !isLoadingAI && (
+                <div className="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50">
+                  <h3 className="font-semibold text-neon-cyan mb-4 flex items-center gap-2">
+                    <Bot className="w-5 h-5" />
+                    AI Analysis
+                  </h3>
+                  <div className="text-gray-300 leading-relaxed whitespace-pre-wrap">
+                    {aiExplanation}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
