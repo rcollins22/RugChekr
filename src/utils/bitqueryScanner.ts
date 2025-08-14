@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Config } from './cconfig';
+import { Config } from './config';
 
 export interface TokenHolder {
   address: string;
