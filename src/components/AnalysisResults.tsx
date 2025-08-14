@@ -138,9 +138,6 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, apiK
           >
             CONTRACT
           </button>
-          <button className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded border border-yellow-500 transition-colors">
-            BUBBLE MAP
-          </button>
         </div>
 
         {/* Contract Code Dropdown */}
